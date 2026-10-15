@@ -1,0 +1,67 @@
+function normalizeUnits(manifest) {
+  const result = { ...manifest };
+  if (manifest.unit === "lb") {
+    result.weight = manifest.weight * 0.45;
+    result.unit = "kg";
+  }
+  return result;
+}
+
+function validateManifest(manifest) {
+  const errors = {};
+  const required = ["containerId", "destination", "weight", "unit", "hazmat"];
+
+  for (const key of required) {
+    if (!(key in manifest) || manifest[key] === undefined) {
+      errors[key] = "Missing";
+    }
+  }
+
+  if (!("containerId" in errors)) {
+    const id = manifest.containerId;
+    if (typeof id !== "number" || !Number.isInteger(id) || id <= 0) {
+      errors.containerId = "Invalid";
+    }
+  }
+
+  if (!("destination" in errors)) {
+    const dest = manifest.destination;
+    if (typeof dest !== "string" || dest.trim() === "") {
+      errors.destination = "Invalid";
+    }
+  }
+
+  if (!("weight" in errors)) {
+    const w = manifest.weight;
+    if (typeof w !== "number" || !Number.isFinite(w) || w <= 0) {
+      errors.weight = "Invalid";
+    }
+  }
+
+  if (!("unit" in errors)) {
+    if (manifest.unit !== "kg" && manifest.unit !== "lb") {
+      errors.unit = "Invalid";
+    }
+  }
+
+  if (!("hazmat" in errors)) {
+    if (typeof manifest.hazmat !== "boolean") {
+      errors.hazmat = "Invalid";
+    }
+  }
+
+  return errors;
+}
+
+function processManifest(manifest) {
+  const errors = validateManifest(manifest);
+
+  if (Object.keys(errors).length === 0) {
+    const normalized = normalizeUnits(manifest);
+    console.log(`Validation success: ${manifest.containerId}`);
+    console.log(`Total weight: ${normalized.weight} kg`);
+  } else {
+    console.log(`Validation error: ${manifest.containerId}`);
+    console.log(errors);
+  }
+}
